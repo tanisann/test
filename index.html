@@ -1,150 +1,32 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="description" content="Pyscriptを使って楽天APIでCD検索して結果を表示するプログラムを作りました。アーティスト名を入力して検索ボタンを押すと楽天ブックスCDの検索結果が新しい順に5件表示します。詳細はhttps://kikuichige.com/11630/"/>
-  <title>Pyscript+WebApi</title>
-  <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css" />
-<script defer src="https://pyscript.net/alpha/pyscript.js"></script>
-<py-env>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-</py-env>
-<style type="text/css">
-.cgap {
-  display: grid;
-  gap: 20px 20px;
-}
-h1{
-  font-size:200%;
-  color: #ff0000;
-  background-color: #ffffff;
-}
-a {color: skyblue; text-decoration: underline;}
-.btn--orange,
-a.btn--orange {
-  color: #fff;
-  background-color: #eb6100;
-}
-.btn--orange:hover,
-a.btn--orange:hover {
-  color: #fff;
-  background: #f56500;
-}
-table {
-  border-collapse: collapse;
-  text-align: center;
-}
-th, td {
-  padding: 5px;
-  border: 1px solid #333;
-}
-th {
-  background-color: #2c88d9;
-  color: #FFF;
-}
-</style>
-</head>
+        <title>Requests Tutorial</title>
 
-<body>
-<div style="display:flex; flex-flow: column; justify-content:center; margin: 6px 4px;">
-<div class="cgap">
+        <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+        <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    </head>
+    <body>
+      <py-config>
+        packages = ["requests", "pyodide-http"]
+      </py-config>
 
+      <py-script>
+        import requests
+        import pyodide_http
 
-<h1>
-楽天ブックスCD検索APIを利用したアプリ
-</h1>
-<div>
-    <input id="input_test" class="border">
-    <button id="btn" class="btn btn--orange" pys-onClick="searchCD">　　検索　　</button>
-    <p>入力例：babymetal</p>
-</div>
-<a href="//af.moshimo.com/af/c/click?a_id=3426884&p_id=54&pc_id=54&pl_id=1220&guid=ON" rel="nofollow" referrerpolicy="no-referrer-when-downgrade"><img src="//image.moshimo.com/af-img/0032/000000001220.gif" width="468" height="60" style="border:none;"></a><img src="//i.moshimo.com/af/i/impression?a_id=3426884&p_id=54&pc_id=54&pl_id=1220" width="1" height="1" style="border:none;">
-<p>表示はするけど反応するまでに数十秒かかります。反応するようになってからは早いです。</p>
-<p>このサイトの詳細は<a href="https://kikuichige.com/11630/">イチゲブログ</a></p>
-<label id='mes'></label>
+        # Patch the Requests library so it works with Pyscript
+        pyodide_http.patch_all()
 
-<table>
-  <tr><!-- 行1（見出し）-->
-    <th>タイトル</th> <th>楽天ブックスCDリンク</th>
-  </tr>
-  <tr>
-    <td><label id='0'></label></td> <td><label id='10'></label></td>
-  </tr>
-  <tr>
-    <td><label id='1'></label></td> <td><label id='11'></label></td>
-  </tr>
-  <tr>
-    <td><label id='2'></label></td> <td><label id='12'></label></td>
-  </tr>
-  <tr>
-  <td><label id='3'></label></td> <td><label id='13'></label></td>
-  </tr>
-  <tr>
-    <td><label id='4'></label></td> <td><label id='14'></label></td>
-  </tr>
-
-</table>
-
-</div></div>
-<py-script>
-import urllib.parse
-from pyodide.http import open_url
-import json
-def searchCD(*ags, **kws):
-    input_test_element = Element("input_test")
-    input_word = input_test_element.element.value
-    
-    input_test_element.clear() #処理後に入力フォームを空にする
-
-    keyword=repr(input_word)
-     
-    test_text=''
-    request_url='https://app.rakuten.co.jp/services/api/BooksCD/Search/20170404'
-    APP_ID='個人別コード'
-    params={'artistName':keyword,
-                'sort':'-releaseDate',
-               'applicationId':APP_ID}
-               
-    
-    url=request_url+'?'+'artistName='+urllib.parse.quote(keyword)+r'&sort='+'-releaseDate'+r'&applicationId='+APP_ID
-    
-    res = json.loads(open_url(url).read())
-    
-     
-     
-    result=res
-    dic=[]
-    if 'error' in result:
-      test_text='失敗です！'
-    else:
-      if result['last'] !='':
-        suu=result['last']
-      else:
-        suu=0 
-
-      for i in range(suu):
-
-        if (result['Items'][i]['Item']['smallImageUrl']!='' and result['Items'][i]['Item']['title']!='' and result['Items'][i]['Item']['itemUrl'] !=''):
-          dic.append(result['Items'][i]['Item']['title'])
-          dic.append(result['Items'][i]['Item']['itemUrl'])
-
-      if dic == []:
-        test_text='該当するアーティストがいません'
-      else:
-        dic1=dic[0::2]
-        dic2=dic[1::2]
-        for i in range(5):
-          pyscript.write(i,dic1[i])
-          pyscript.write(i+10,dic2[i])
-    pyscript.write("mes",test_text)
-
-    return  
-
-</py-script>
-
-</body>
+        # Make a request to the JSON Placeholder API
+        response = requests.get("https://jsonplaceholder.typicode.com/todos")
+        print(response.json())
+      </py-script>
+    </body>
 </html>
-
 <input type="button" value="保存確認" onclick="view();" >
 <span id="mydata_out"></span>
 </body>
